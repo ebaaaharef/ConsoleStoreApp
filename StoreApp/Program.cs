@@ -1,7 +1,7 @@
 ﻿using System;
+using StoreApp;
 
-
-class Program
+class Program 
 {
 
     static void Main(string[] args)
@@ -46,7 +46,7 @@ class Program
                     ManageOrders();
                     break;
                 case "0":
-                    Console.WriteLine("Thank you for using MyStore waiti ng for you once again!");
+                    Console.WriteLine("Thank you for using MyStore waiting for you once again!");
                     break;
                 default:
                     Console.WriteLine("Invalid choice. Please try again");
@@ -126,30 +126,12 @@ class Program
         }
     }
 
+    //!!!ConsoleUtils  used
     static void AddProduct()
     {
-        Console.WriteLine("Enter product name");
-        string productName = Console.ReadLine()?.Trim() ?? string.Empty;
-        while (string.IsNullOrWhiteSpace(productName))
-        {
-            Console.WriteLine("Product name cannot be empty. Please enter a valid product name:");
-            productName = Console.ReadLine()?.Trim() ?? string.Empty;
-        }
-         
-
-        decimal productPrice;
-        Console.WriteLine("Enter product price");
-        while (!decimal.TryParse(Console.ReadLine(), out productPrice)|| productPrice<=0)
-        {
-            Console.WriteLine("Invalid price. Enter positive price.");
-        }
-
-        int quantity;
-        Console.WriteLine("Enter product quantity");
-        while (!int.TryParse(Console.ReadLine(), out quantity) || quantity < 0)
-        {
-            Console.WriteLine("Invalid quantity. Enter a non-negative number or zero.");
-        }
+        string productName = ConsoleUtils.ReadNonEmptyString("Enter product name:");
+        decimal productPrice = ConsoleUtils.ReadDecimal("Enter product price:");
+        int quantity = ConsoleUtils.ReadInt("Enter product quantity:", minValue: 0);
 
         Product newProduct = new Product(productName, productPrice, quantity);
         Products.Add(newProduct);
@@ -182,6 +164,7 @@ class Program
         Console.WriteLine($"Total Inventory Value: {totalInventory:C}");
     }
     //price update method
+    //!!!ConsoleUtils  used
     public static void PriceUpdate()
     {if (Products.Count == 0)
         {  Console.WriteLine("No products available yet");
@@ -196,16 +179,16 @@ class Program
         if (inputproduct == null)
         { Console.WriteLine($"No product found with ID:{inputId}"); return; }
 
-        decimal newPrice;
+        
         Console.WriteLine($"Current price of {inputproduct.Name} is {inputproduct.Price:C},\n Enter new price:");
-        while (!decimal.TryParse(Console.ReadLine(), out newPrice) || newPrice <= 0)
-        { Console.WriteLine("Invalid price"); }
+        decimal newPrice = ConsoleUtils.ReadDecimal($"Current price of {inputproduct.Name} is {inputproduct.Price:C},\n Enter new price:", minValue: 0.01m);
 
         inputproduct.Price = newPrice;
         Console.WriteLine($"Price updated for {inputproduct.Name} to {inputproduct.Price:C}");
     }
 
     // Update product quantity
+    //!!!ConsoleUtils  used
     public static void quantityUpdate()
     {
         if (Products.Count == 0)
@@ -222,16 +205,14 @@ class Program
         if (inputproduct == null)
         { Console.WriteLine($"No product found with ID:{inputId}"); return; }
 
-        int newQuantity;
-        Console.WriteLine($"Current Quantity of {inputproduct.Name} is {inputproduct.Quantity},\n Enter new quantity:");
-        while (!int.TryParse(Console.ReadLine(), out newQuantity) || newQuantity < 0)
-        { Console.WriteLine("Invalid Quantity"); }
+        int newQuantity = ConsoleUtils.ReadInt($"Current Quantity of {inputproduct.Name} is {inputproduct.Quantity},\nEnter new quantity:", minValue: 0);
 
         inputproduct.Quantity = newQuantity;
         Console.WriteLine($"Quantity updated for {inputproduct.Name} to {inputproduct.Quantity}");
     }
 
     // Method to delete a product
+    //!!!ConsoleUtils  used
     public static void DeleteProduct()
     {
         if (Products.Count == 0)
@@ -248,16 +229,15 @@ class Program
         if (inputproduct == null)
         { Console.WriteLine($"No product found with ID:{inputId}"); return; }
 
-       Console.WriteLine($"Are you sure you want to delete {inputproduct.Name}? (y/n)");
-        string confirmanswar = Console.ReadLine()?.Trim().ToLower() ?? string.Empty;
-        if (confirmanswar == "y")
+        bool confirm = ConsoleUtils.ReadYesNo($"Are you sure you want to delete {inputproduct.Name}?");
+        if (confirm)
         {
             Products.Remove(inputproduct);
-            Console.WriteLine($"product has been deleted");
+            Console.WriteLine("Product has been deleted successfully.");
         }
         else
         {
-            Console.WriteLine("Deletion cancelled");
+            Console.WriteLine("Deletion cancelled.");
         }
     }
 
@@ -361,27 +341,22 @@ class Program
 
     static void AddCustomer()
     {
-        Console.WriteLine("Enter customer name");
-        string customerName = Console.ReadLine()?.Trim() ?? string.Empty;
-        while (string.IsNullOrWhiteSpace(customerName) || customerName.All(char.IsDigit))
+        string customerName = ConsoleUtils.ReadNonEmptyString("Enter customer name:");
+
+        while (customerName.All(char.IsDigit))
         {
-            Console.WriteLine("Invalid name. Name cannot be empty or consist of numbers only. Please enter a valid customer name:");
-            customerName = Console.ReadLine()?.Trim() ?? string.Empty;
+            Console.WriteLine("Invalid name. Name cannot consist of numbers only. Please enter a valid customer name:");
+            customerName = ConsoleUtils.ReadNonEmptyString("Enter customer name:");
         }
 
-        Console.WriteLine("Enter customer phone number");
-        string customerPhone = Console.ReadLine()?.Trim() ?? string.Empty;
-        while (string.IsNullOrWhiteSpace(customerPhone) ||!customerPhone.All(char.IsDigit) || customerPhone.Length < 9 || customerPhone.Length > 15)
-        {
-            Console.WriteLine("Invalid phone number.\n it must be digits only and between 9 and 15 digits in format 09~ or +218~.\n Please enter again:");
-            customerPhone = Console.ReadLine()?.Trim()?? string.Empty;
-        }
-         if(Customers.Any(Cp=> Cp.PhoneNumber== customerPhone))
+        string customerPhone = ConsoleUtils.ReadPhoneNumber("Enter customer phone number:");
+
+        if (Customers.Any(Cp => Cp.PhoneNumber == customerPhone))
         {
             Console.WriteLine("A customer with this phone number already exists.");
             return;
         }
-        
+
 
         Customer newCustomer = new Customer(customerName, customerPhone);
         Customers.Add(newCustomer);
@@ -466,6 +441,7 @@ class Program
         }
     }
 
+    
     public class Order
     {
         public int Id { get; set; }
@@ -523,7 +499,7 @@ class Program
 
         }
     }
-
+    //!!!ConsoleUtils  used
     public static void CreateOrder()
     {
         if(Customers.Count ==0)
@@ -573,12 +549,7 @@ class Program
                 continue;
             }
 
-            int quantityAvailable;
-            Console.WriteLine($"Enter quantity for {product.Name} (Available: {product.Quantity})");
-            while (!int.TryParse(Console.ReadLine(), out quantityAvailable))
-            {
-                Console.WriteLine($"Invalid quantity. Please enter a positive number ");
-            }
+            int quantityAvailable = ConsoleUtils.ReadInt($"Enter quantity for {product.Name} (Available: {product.Quantity}):", minValue: 1);
 
             var existingItem = tempItems.FirstOrDefault(i => i.Product.Id == product.Id);
             int orderedQuantity = existingItem?.Quantity ?? 0;
@@ -610,11 +581,11 @@ class Program
         Console.WriteLine($"Customer: {customer.Name}");
         Console.WriteLine($"Total Items: {tempItems.Count}");
         Console.WriteLine($"Total Amount: {orderTotal:C}");
-        Console.WriteLine("Are you sure you want to confirm this order? (y/n)");
+     
 
-        string confirm = Console.ReadLine()?.Trim() ?? string.Empty;
+        bool confirm = ConsoleUtils.ReadYesNo("Are you sure you want to confirm this order?");
 
-        if (confirm.Equals("y", StringComparison.OrdinalIgnoreCase))
+        if (confirm)
         {
             foreach (var item in tempItems)
             {
@@ -630,7 +601,6 @@ class Program
         {
             Console.WriteLine("Order cancelled. Stock remains the same");
         }
-
     }
 
     public static void ListOrders()
