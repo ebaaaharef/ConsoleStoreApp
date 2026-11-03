@@ -1,14 +1,23 @@
 ﻿using System;
 using StoreApp;
+using StoreApp.methods;
+using static StoreApp.methods.Order;
+
 
 class Program 
 {
 
     static void Main(string[] args)
     {
+        Products = StoreFileManager.LoadProducts();
+        Customers = StoreFileManager.LoadCustomers();
+        Orders = StoreFileManager.LoadOrders();
 
         MenuSwitchRun();
 
+    
+        
+        StoreFileManager.saveOrders(Orders);
     }
 
     static void MenuDisplay()
@@ -46,6 +55,9 @@ class Program
                     ManageOrders();
                     break;
                 case "0":
+                    StoreFileManager.saveProducts(Products);
+                    StoreFileManager.saveCustomers(Customers);
+                    StoreFileManager.saveOrders(Orders);
                     Console.WriteLine("Thank you for using MyStore waiting for you once again!");
                     break;
                 default:
@@ -58,21 +70,7 @@ class Program
         }
     }
     //=============== manage products methods =====================
-    public class Product
-    {
-        public Guid Id { get; set; } = Guid.NewGuid(); 
-        public string Name { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-        public int Quantity { get; set; }
-
-        public Product(string name, decimal price, int quantity)
-        {
-            Name = name;
-            Price = price;
-            Quantity = quantity;
-        }
-    }
-
+ 
     static List<Product> Products = new List<Product>();
 
 
@@ -135,6 +133,8 @@ class Program
 
         Product newProduct = new Product(productName, productPrice, quantity);
         Products.Add(newProduct);
+
+        StoreFileManager.saveProducts(Products);
     }
 
     static void ListProducts()
@@ -185,6 +185,7 @@ class Program
 
         inputproduct.Price = newPrice;
         Console.WriteLine($"Price updated for {inputproduct.Name} to {inputproduct.Price:C}");
+        StoreFileManager.saveProducts(Products);
     }
 
     // Update product quantity
@@ -209,6 +210,7 @@ class Program
 
         inputproduct.Quantity = newQuantity;
         Console.WriteLine($"Quantity updated for {inputproduct.Name} to {inputproduct.Quantity}");
+        StoreFileManager.saveProducts(Products);
     }
 
     // Method to delete a product
@@ -239,6 +241,7 @@ class Program
         {
             Console.WriteLine("Deletion cancelled.");
         }
+        StoreFileManager.saveProducts(Products);
     }
 
     // Method to search for products by name
@@ -285,17 +288,7 @@ class Program
 
     //================ manage customers methods =====================
      
-    public class Customer
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public Customer(string name, string phoneNum)
-        {
-            Name = name;
-            PhoneNumber = phoneNum;
-        }
-    }
+   
     static List<Customer> Customers = new List<Customer>();
 
     static void ManageCustomer()
@@ -360,6 +353,7 @@ class Program
 
         Customer newCustomer = new Customer(customerName, customerPhone);
         Customers.Add(newCustomer);
+        StoreFileManager.saveCustomers(Customers);
     }
 
     static void ListCustomers()
@@ -426,38 +420,6 @@ class Program
 
         //==============order section=========================
 
-        public class OrderItem
-    {
-        public Product Product { get; set; } = null!;
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; } 
-        public decimal Subtotal => UnitPrice * Quantity;
-
-        public OrderItem(Product product, int quantity, decimal unitPrice)
-        {
-            Product = product;
-            Quantity = quantity;
-            UnitPrice = unitPrice;
-        }
-    }
-
-    
-    public class Order
-    {
-        public int Id { get; set; }
-        public Customer Customer { get; set; } = null!;
-        public List<OrderItem> Items { get; set; } = new();
-        public DateTime OrderDate { get; set; }
-        public decimal Total => Items.Sum(i => i.Subtotal);
-
-        public Order(int id, Customer customer, List<OrderItem> items, DateTime orderDate)
-        {
-            Id = id;
-            Customer = customer;
-            Items = items;
-            OrderDate = orderDate;
-        }
-    }
 
  
     static List<Order> Orders = new List<Order>();
@@ -512,6 +474,7 @@ class Program
             Console.WriteLine("No Product available");
             return;
         }
+
 
         Console.WriteLine("Enter customer ID for the order or '0' to cansle the order");
         string customerIdInput = Console.ReadLine()?.Trim() ?? string.Empty;
@@ -591,8 +554,9 @@ class Program
             {
                 item.Product.Quantity -= item.Quantity;
             }
+            int newOrderId = Orders.Count > 0 ? Orders.Max(o => o.Id) + 1 : 1; //updated 
 
-            Order newOrder = new Order(nextOrderId++, customer, tempItems, DateTime.Now);
+            Order newOrder = new Order(newOrderId, customer, tempItems, DateTime.Now);
             Orders.Add(newOrder);
 
             Console.WriteLine($"\nOrder #{newOrder.Id} creation done");
@@ -601,6 +565,9 @@ class Program
         {
             Console.WriteLine("Order cancelled. Stock remains the same");
         }
+
+        StoreFileManager.saveOrders(Orders);
+        StoreFileManager.saveProducts(Products);
     }
 
     public static void ListOrders()
