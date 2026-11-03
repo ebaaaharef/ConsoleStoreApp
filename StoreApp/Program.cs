@@ -1,7 +1,8 @@
 ﻿using System;
 using StoreApp;
-using StoreApp.methods;
-using static StoreApp.methods.Order;
+using StoreApp.models;
+using System.IO;
+
 
 
 class Program 
@@ -9,15 +10,14 @@ class Program
 
     static void Main(string[] args)
     {
-        Products = StoreFileManager.LoadProducts();
-        Customers = StoreFileManager.LoadCustomers();
-        Orders = StoreFileManager.LoadOrders();
+        // sorry for the misdirecting, I got confused between level 7 & 10 
+        //Products = StoreFileManager.LoadProducts();
+        //Customers = StoreFileManager.LoadCustomers();
+        //Orders = StoreFileManager.LoadOrders();
 
         MenuSwitchRun();
 
     
-        
-        StoreFileManager.saveOrders(Orders);
     }
 
     static void MenuDisplay()
@@ -55,9 +55,9 @@ class Program
                     ManageOrders();
                     break;
                 case "0":
-                    StoreFileManager.saveProducts(Products);
-                    StoreFileManager.saveCustomers(Customers);
-                    StoreFileManager.saveOrders(Orders);
+                    //StoreFileManager.saveProducts(Products);
+                    //StoreFileManager.saveCustomers(Customers);
+                    //StoreFileManager.saveOrders(Orders);
                     Console.WriteLine("Thank you for using MyStore waiting for you once again!");
                     break;
                 default:
@@ -87,6 +87,7 @@ class Program
             Console.WriteLine("4. Update product price");
             Console.WriteLine("5. Update product quantity");
             Console.WriteLine("6. Delete product");
+            Console.WriteLine("7. Filter products by category");
             Console.WriteLine("0. Back to the main menu");
             Console.WriteLine("Choose an option");
 
@@ -112,6 +113,9 @@ class Program
                 case "6":
                     DeleteProduct();
                     break;
+                case "7":
+                    FilterByCategory();
+                    break;
                 case "0":
                     break;
 
@@ -131,10 +135,32 @@ class Program
         decimal productPrice = ConsoleUtils.ReadDecimal("Enter product price:");
         int quantity = ConsoleUtils.ReadInt("Enter product quantity:", minValue: 0);
 
-        Product newProduct = new Product(productName, productPrice, quantity);
+        var categories = Enum.GetValues<Category>();
+        Console.WriteLine("Select Category:");
+        for (int i = 0; i < categories.Length; i++)
+        {
+            Console.WriteLine($"{i + 1}. {categories[i]}");
+        }
+
+        int choice;
+        while (true)
+        {
+            choice = ConsoleUtils.ReadInt("Choose category number: ", 1);
+
+            if (choice <= categories.Length)
+            {
+                break; 
+            }
+
+            Console.WriteLine($"Invalid choice. Please enter a number between 1 and {categories.Length}.");
+        }
+
+        Category selectedCategory = categories[choice - 1];
+
+        Product newProduct = new Product(productName, productPrice, quantity, selectedCategory);
         Products.Add(newProduct);
 
-        StoreFileManager.saveProducts(Products);
+       // StoreFileManager.saveProducts(Products);
     }
 
     static void ListProducts()
@@ -166,26 +192,43 @@ class Program
     //price update method
     //!!!ConsoleUtils  used
     public static void PriceUpdate()
-    {if (Products.Count == 0)
-        {  Console.WriteLine("No products available yet");
+    {
+        if (Products.Count == 0)
+        {
+            Console.WriteLine("No products available.");
             return;
         }
 
-        Console.WriteLine("Enter product ID to update price:");
-        string inputId = Console.ReadLine()?.Trim() ?? string.Empty;
+        Console.WriteLine("\n-------------------------------------------------------------------------");
+        Console.WriteLine($"{"ID (Short)",-10} | {"Name",-15} | {"Category",-12} | {"Price",10} | {"Quantity",8} | {"Total",10}");
+        Console.WriteLine("-------------------------------------------------------------------------");
 
-        var inputproduct = Products.FirstOrDefault(p => p.Id.ToString().StartsWith(inputId, StringComparison.OrdinalIgnoreCase));
+        foreach (var p in Products)
+        {
+            decimal totalItemValue = p.Price * p.Quantity;
+            string shortId = p.Id.ToString().Substring(0, Math.Min(8, p.Id.ToString().Length));
+            string displayName = p.Name.Length > 12 ? p.Name.Substring(0, 9) + "..." : p.Name;
 
-        if (inputproduct == null)
-        { Console.WriteLine($"No product found with ID:{inputId}"); return; }
+            Console.WriteLine($"{shortId,-10} | {displayName,-15} | {p.Category,-12} | {p.Price,8:C} | {p.Quantity,8} | {totalItemValue,8:C}");
+        }
 
-        
-        Console.WriteLine($"Current price of {inputproduct.Name} is {inputproduct.Price:C},\n Enter new price:");
-        decimal newPrice = ConsoleUtils.ReadDecimal($"Current price of {inputproduct.Name} is {inputproduct.Price:C},\n Enter new price:", minValue: 0.01m);
+        Console.WriteLine("-------------------------------------------------------------------------");
 
-        inputproduct.Price = newPrice;
-        Console.WriteLine($"Price updated for {inputproduct.Name} to {inputproduct.Price:C}");
-        StoreFileManager.saveProducts(Products);
+        Console.WriteLine("Inventory Breakdown by Category:");
+        var categoryBreakdown = Products
+            .GroupBy(p => p.Category)
+            .Select(g => new { Category = g.Key, TotalValue = g.Sum(p => p.Price * p.Quantity) });
+
+        foreach (var item in categoryBreakdown)
+        {
+            Console.WriteLine($"- {item.Category,-12}: {item.TotalValue,10:C}");
+        }
+
+        decimal overallTotal = Products.Sum(p => p.Price * p.Quantity);
+        Console.WriteLine("-------------------------------------------------------------------------");
+        Console.WriteLine($"Total Inventory Value: {overallTotal:C}");
+        Console.WriteLine("-------------------------------------------------------------------------");
+        //StoreFileManager.saveProducts(Products);
     }
 
     // Update product quantity
@@ -210,7 +253,7 @@ class Program
 
         inputproduct.Quantity = newQuantity;
         Console.WriteLine($"Quantity updated for {inputproduct.Name} to {inputproduct.Quantity}");
-        StoreFileManager.saveProducts(Products);
+        //StoreFileManager.saveProducts(Products);
     }
 
     // Method to delete a product
@@ -241,7 +284,7 @@ class Program
         {
             Console.WriteLine("Deletion cancelled.");
         }
-        StoreFileManager.saveProducts(Products);
+        //StoreFileManager.saveProducts(Products);
     }
 
     // Method to search for products by name
@@ -279,16 +322,62 @@ class Program
         }
         Console.WriteLine("------------------------------------------------");
 
+    }
 
+    static void FilterByCategory()
+    {
+        if (Products.Count == 0)
+        {
+            Console.WriteLine("No products available yet.");
+            return;
+        }
 
+        var categories = Enum.GetValues<Category>();
+        Console.WriteLine("Select Category to Filter:");
+        for (int i = 0; i < categories.Length; i++)
+        {
+            Console.WriteLine($"{i + 1}. {categories[i]}");
+        }
 
+        int choice;
+        while (true)
+        {
+            choice = ConsoleUtils.ReadInt("Choose category number: ", 1);
+            if (choice <= categories.Length)
+            {
+                break;
+            }
+            Console.WriteLine($"Invalid choice. Please enter a number between 1 and {categories.Length}.");
+        }
 
+        Category selectedCategory = categories[choice - 1];
+        var filteredProducts = Products.Where(p => p.Category == selectedCategory).ToList();
 
+        if (filteredProducts.Count == 0)
+        {
+            Console.WriteLine($"No products found in category '{selectedCategory}'.");
+            return;
+        }
+
+        Console.WriteLine($"\n--- Products in Category: {selectedCategory} ({filteredProducts.Count} found) ---");
+        Console.WriteLine("-------------------------------------------------------------------------");
+        Console.WriteLine($"{"ID (Short)",-10} | {"Name",-15} | {"Category",-12} | {"Price",10} | {"Quantity",8} | {"Total",10}");
+        Console.WriteLine("-------------------------------------------------------------------------");
+
+        foreach (var p in filteredProducts)
+        {
+            decimal totalItemValue = p.Price * p.Quantity;
+            string shortId = p.Id.ToString().Substring(0, Math.Min(8, p.Id.ToString().Length));
+            string displayName = p.Name.Length > 12 ? p.Name.Substring(0, 9) + "..." : p.Name;
+
+            Console.WriteLine($"{shortId,-10} | {displayName,-15} | {p.Category,-12} | {p.Price,8:C} | {p.Quantity,8} | {totalItemValue,8:C}");
+        }
+        Console.WriteLine("-------------------------------------------------------------------------");
     }
 
     //================ manage customers methods =====================
-     
-   
+
+
     static List<Customer> Customers = new List<Customer>();
 
     static void ManageCustomer()
@@ -353,7 +442,7 @@ class Program
 
         Customer newCustomer = new Customer(customerName, customerPhone);
         Customers.Add(newCustomer);
-        StoreFileManager.saveCustomers(Customers);
+        //StoreFileManager.saveCustomers(Customers);
     }
 
     static void ListCustomers()
@@ -566,8 +655,8 @@ class Program
             Console.WriteLine("Order cancelled. Stock remains the same");
         }
 
-        StoreFileManager.saveOrders(Orders);
-        StoreFileManager.saveProducts(Products);
+       // StoreFileManager.saveOrders(Orders);
+       // StoreFileManager.saveProducts(Products);
     }
 
     public static void ListOrders()

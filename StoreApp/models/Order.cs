@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using StoreApp.methods;
+﻿using StoreApp.models;
 
-namespace StoreApp.methods
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace StoreApp
 {
     public class Order
     {
@@ -14,6 +16,7 @@ namespace StoreApp.methods
         public decimal Total => Items.Sum(i => i.Subtotal);
 
         public Order() { }
+
         public Order(int id, Customer customer, List<OrderItem> items, DateTime orderDate)
         {
             Id = id;
@@ -21,21 +24,22 @@ namespace StoreApp.methods
             Items = items;
             OrderDate = orderDate;
         }
-        public class OrderItem
+    }
+
+    public class OrderItem
+    {
+        public Product Product { get; set; } = null!;
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal Subtotal => UnitPrice * Quantity;
+
+        public OrderItem() { }
+
+        public OrderItem(Product product, int quantity, decimal unitPrice)
         {
-            public Product Product { get; set; } = null!;
-            public int Quantity { get; set; }
-            public decimal UnitPrice { get; set; }
-            public decimal Subtotal => UnitPrice * Quantity;
-
-            public OrderItem() { }
-
-            public OrderItem(Product product, int quantity, decimal unitPrice)
-            {
-                Product = product;
-                Quantity = quantity;
-                UnitPrice = unitPrice;
-            }
+            Product = product;
+            Quantity = quantity;
+            UnitPrice = unitPrice;
         }
     }
 }

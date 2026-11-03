@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Text;
 
-namespace StoreApp.methods
+namespace StoreApp.models
 {
     public class Customer
     {
