@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace StoreApp
 {
-    internal class ConsoleUtils
+    internal class InputHelper
     {
         public static string ReadNonEmptyString(string prompt)
         {
@@ -24,24 +24,44 @@ namespace StoreApp
             return input;
         }
 
-        public static int ReadInt(string prompt, int minValue = 0)
+        public static int ReadInt(string prompt, int min = 0, int max = int.MaxValue)
         {
             int acceptedValue;
             Console.WriteLine(prompt);
-            while (!int.TryParse(Console.ReadLine(), out acceptedValue) || acceptedValue < minValue)
+            while (!int.TryParse(Console.ReadLine(), out acceptedValue) || acceptedValue < min || acceptedValue > max)
             {
-                Console.WriteLine($"Invalid input. Please enter an integer greater than or equal to {minValue}.");
+               
+                if (min == int.MinValue && max == int.MaxValue)
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid integer.");
+                }
+                else if (max == int.MaxValue)
+                {
+                    Console.WriteLine($"Invalid input. Please enter an integer greater than or equal to {min}.");
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid input. Please enter a whole number between {min} and {max}.");
+                }
             }
             return acceptedValue;
         }
 
-        public static decimal ReadDecimal(string prompt, decimal minValue = 0.01m)
+
+        public static decimal ReadDecimal(string prompt, decimal min = 0.01m, decimal max = decimal.MaxValue)
         {
             decimal acceptedValue;
             Console.WriteLine(prompt);
-            while (!decimal.TryParse(Console.ReadLine(), out acceptedValue) || acceptedValue < minValue)
+            while (!decimal.TryParse(Console.ReadLine(), out acceptedValue) || acceptedValue < min || acceptedValue > max)
             {
-                Console.WriteLine($"Invalid input. Please enter a number greater than or equal to {minValue}.");
+                if (max == decimal.MaxValue)
+                {
+                    Console.WriteLine($"Invalid input. Please enter a number greater than or equal to {min}.");
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid input. Please enter a number between {min} and {max}.");
+                }
             }
             return acceptedValue;
         }

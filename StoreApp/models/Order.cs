@@ -13,7 +13,18 @@ namespace StoreApp
         public Customer Customer { get; set; } = null!;
         public List<OrderItem> Items { get; set; } = new();
         public DateTime OrderDate { get; set; }
+        // Discount properties
+        public string? DiscountCode { get; set; }
+        public decimal DiscountPercentage { get; set; }
+
         public decimal Total => Items.Sum(i => i.Subtotal);
+
+        public decimal DiscountAmount => Math.Round(Total * (DiscountPercentage / 100m), 2);
+
+        public decimal FinalTotal => Total - DiscountAmount;
+
+
+
 
         public Order() { }
 
@@ -32,6 +43,7 @@ namespace StoreApp
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal Subtotal => UnitPrice * Quantity;
+       
 
         public OrderItem() { }
 
