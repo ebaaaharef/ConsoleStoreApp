@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 
 
-class Program 
+class Program
 {
 
     static void Main(string[] args)
@@ -19,7 +19,7 @@ class Program
 
         MenuSwitchRun();
 
-    
+
     }
 
     static void MenuDisplay()
@@ -30,6 +30,7 @@ class Program
         Console.WriteLine("2.Customers");
         Console.WriteLine("3.Orders");
         Console.WriteLine("4.Discounts");// level 8
+        Console.WriteLine("5.Reports");// level 9
         Console.WriteLine("0.Exit");
 
 
@@ -60,6 +61,9 @@ class Program
                 case "4":
                     ManageDiscount();
                     break;
+                case "5":
+                    ManageReports();
+                    break;
 
                 case "0":
                     //StoreFileManager.saveProducts(Products);
@@ -76,7 +80,7 @@ class Program
 
         }
     }
-    
+
 
     //=============== manage products methods =====================
 
@@ -137,7 +141,6 @@ class Program
         }
     }
 
-    //!!!ConsoleUtils  used
     static void AddProduct()
     {
         string productName = InputHelper.ReadNonEmptyString("Enter product name:");
@@ -158,7 +161,7 @@ class Program
 
             if (choice <= categories.Length)
             {
-                break; 
+                break;
             }
 
             Console.WriteLine($"Invalid choice. Please enter a number between 1 and {categories.Length}.");
@@ -169,7 +172,7 @@ class Program
         Product newProduct = new Product(productName, productPrice, quantity, selectedCategory);
         Products.Add(newProduct);
 
-       // StoreFileManager.saveProducts(Products);
+        // StoreFileManager.saveProducts(Products);
     }
 
     static void ListProducts()
@@ -179,7 +182,7 @@ class Program
             Console.WriteLine("No products available.");
             return;
         }
-         
+
         decimal totalInventory = 0;
         Console.WriteLine("\n-------------------------------------------------------------------------");
         Console.WriteLine($"{"ID (Short)",-10} | {"Name",-15} | {"Category",-12} | {"Price",10} | {"Quantity",8} | {"Total",10}");
@@ -187,7 +190,7 @@ class Program
         foreach (var p in Products)
         {
             decimal totalItemValue = p.Price * p.Quantity;
-            
+
 
             string shortId = p.Id.ToString().Substring(0, 8);
             string displayName = p.Name.Length > 12 ? p.Name.Substring(0, 9) + "..." : p.Name;
@@ -205,14 +208,13 @@ class Program
             Console.WriteLine($"- {item.Category,-12}: {item.TotalValue,10:C}");
         }
 
-        
+
         totalInventory = Products.Sum(p => p.Price * p.Quantity);
         Console.WriteLine("-------------------------------------------------------------------------");
         Console.WriteLine($"Total Inventory Value: {totalInventory:C}");
         Console.WriteLine("-------------------------------------------------------------------------");
     }
     //price update method
-    //!!!ConsoleUtils  used
     public static void PriceUpdate()
     {
         if (Products.Count == 0)
@@ -316,8 +318,8 @@ class Program
         Console.WriteLine("Enter name of product you are searching for");
         string searchKeyword = Console.ReadLine()?.Trim() ?? string.Empty;
 
-        if (string.IsNullOrWhiteSpace(searchKeyword)) 
-        {Console.WriteLine("Search keyword cannot be empty"); return; }
+        if (string.IsNullOrWhiteSpace(searchKeyword))
+        { Console.WriteLine("Search keyword cannot be empty"); return; }
 
 
         var matchedproducts = Products.
@@ -438,7 +440,7 @@ class Program
 
         }
 
-        
+
 
     }
 
@@ -475,7 +477,7 @@ class Program
             return;
         }
 
-       
+
         Console.WriteLine("\n------------------------------------------------");
         Console.WriteLine($"{"ID (Short)",-12} | {"Name",-20} | {"Phone number",15}");
         Console.WriteLine("------------------------------------------------");
@@ -489,7 +491,7 @@ class Program
         }
 
         Console.WriteLine("------------------------------------------------");
-        
+
     }
 
 
@@ -529,10 +531,10 @@ class Program
     }
 
 
-        //==============order section=========================
+    //==============order section=========================
 
 
- 
+
     static List<Order> Orders = new List<Order>();
     static int nextOrderId = 1;
 
@@ -549,7 +551,7 @@ class Program
             Console.WriteLine("0. Back to the main menu");
             Console.WriteLine("Choose an option:");
 
-           userChoice = Console.ReadLine()?.Trim() ?? string.Empty;
+            userChoice = Console.ReadLine()?.Trim() ?? string.Empty;
 
             switch (userChoice)
             {
@@ -575,7 +577,7 @@ class Program
     //!!!ConsoleUtils  used
     public static void CreateOrder()
     {
-        if(Customers.Count ==0)
+        if (Customers.Count == 0)
         {
             Console.WriteLine("No customers available. Please add a customer first");
             return;
@@ -596,8 +598,8 @@ class Program
             return;
         }
 
-         var customer= Customers.FirstOrDefault(c=>c.Id.ToString().Equals(customerIdInput, StringComparison.OrdinalIgnoreCase)||
-            c.Id.ToString().Substring(0,8).Equals(customerIdInput, StringComparison.OrdinalIgnoreCase));
+        var customer = Customers.FirstOrDefault(c => c.Id.ToString().Equals(customerIdInput, StringComparison.OrdinalIgnoreCase) ||
+           c.Id.ToString().Substring(0, 8).Equals(customerIdInput, StringComparison.OrdinalIgnoreCase));
         if (customer == null)
         {
             Console.WriteLine($"No customer found with ID: {customerIdInput}");
@@ -616,8 +618,8 @@ class Program
             {
                 break;
             }
-            var product = Products.FirstOrDefault(p => p.Id.ToString().Equals(productIdInput, StringComparison.OrdinalIgnoreCase)||
-            p.Id.ToString().Substring(0,8).Equals(productIdInput, StringComparison.OrdinalIgnoreCase));// preventing parial ID match 
+            var product = Products.FirstOrDefault(p => p.Id.ToString().Equals(productIdInput, StringComparison.OrdinalIgnoreCase) ||
+            p.Id.ToString().Substring(0, 8).Equals(productIdInput, StringComparison.OrdinalIgnoreCase));// preventing parial ID match 
             if (product == null)
             {
                 Console.WriteLine($"No product found with ID: {productIdInput}");
@@ -649,7 +651,7 @@ class Program
         }
 
         if (tempItems.Count == 0)
-        { Console.WriteLine("No items were added. Order cancelled."); return;}
+        { Console.WriteLine("No items were added. Order cancelled."); return; }
 
         // Discount application
         string? appliedDiscountCode = null;
@@ -662,10 +664,10 @@ class Program
 
             if (string.IsNullOrEmpty(inputCode))
             {
-                break; 
+                break;
             }
 
-            var discountinputcode= Discounts.FirstOrDefault(d => d.Code.Equals(inputCode, StringComparison.OrdinalIgnoreCase));
+            var discountinputcode = Discounts.FirstOrDefault(d => d.Code.Equals(inputCode, StringComparison.OrdinalIgnoreCase));
 
             if (discountinputcode == null)
             {
@@ -797,7 +799,8 @@ class Program
     // ==================== DISCOUNT SYSTEM (LEVEL 8) ====================
     static List<Discount> Discounts = new List<Discount>();
     public static void ManageDiscount()
-    {  string discountChoice="";
+    {
+        string discountChoice = "";
         while (discountChoice != "0")
         {
             Console.WriteLine("===Discount Menu ===");
@@ -826,23 +829,23 @@ class Program
                     break;
             }
         }
-   
+
     }
 
     public static void AddDiscountCode()
     {
         string code = InputHelper.ReadNonEmptyString("Enter discount code:").ToUpper();
 
-        if (Discounts.Any(d=> d.Code.Equals(code, StringComparison.OrdinalIgnoreCase))) 
+        if (Discounts.Any(d => d.Code.Equals(code, StringComparison.OrdinalIgnoreCase)))
         {
             Console.WriteLine("A discount code with this name already exists.");
             return;
         }
 
-        decimal percentage = InputHelper.ReadDecimal("Enter dicount percentage (1 to 100)",1,100);
+        decimal percentage = InputHelper.ReadDecimal("Enter dicount percentage (1 to 100)", 1, 100);
 
         Discounts.Add(new Discount
-        {  
+        {
             Code = code,
             Percentage = percentage,
             IsActive = true
@@ -860,18 +863,18 @@ class Program
             return;
         }
 
-            Console.WriteLine("\n--------------------------------------------------");
-            Console.WriteLine($"{"ID",-5} | {"Code",-12} | {"Percentage",-10} | {"Status",-8}");
-            Console.WriteLine("--------------------------------------------------");
-            foreach (var d in Discounts)
-            {
-                string shortId = d.Id.ToString().Substring(0, Math.Min(8, d.Id.ToString().Length));
-                string status = d.IsActive ? "Active" : "Inactive";
-                Console.WriteLine($"{shortId,-5} | {d.Code,-12} | {d.Percentage,-8}% | {status,-8}");
-            }
-            Console.WriteLine("--------------------------------------------------");
-     }
-    
+        Console.WriteLine("\n--------------------------------------------------");
+        Console.WriteLine($"{"ID",-5} | {"Code",-12} | {"Percentage",-10} | {"Status",-8}");
+        Console.WriteLine("--------------------------------------------------");
+        foreach (var d in Discounts)
+        {
+            string shortId = d.Id.ToString().Substring(0, Math.Min(8, d.Id.ToString().Length));
+            string status = d.IsActive ? "Active" : "Inactive";
+            Console.WriteLine($"{shortId,-5} | {d.Code,-12} | {d.Percentage,-8}% | {status,-8}");
+        }
+        Console.WriteLine("--------------------------------------------------");
+    }
+
 
     public static void activateOrDeactivate()
     {
@@ -889,6 +892,172 @@ class Program
         discount.IsActive = !discount.IsActive;
         string stateStr = discount.IsActive ? "activated" : "deactivated";
         Console.WriteLine($"Discount code '{discount.Code}' has been {stateStr}.");
+    }
+
+    //================= REPORTS SECTION =====================
+
+    static void ManageReports()
+    {
+        string userChoice = "";
+        while (userChoice != "0")
+        {
+            Console.WriteLine("===Reports Menu ===");
+            Console.WriteLine("________________");
+            Console.WriteLine("1. Best-Selling Products");
+            Console.WriteLine("2. Top Customers by Spend");
+            Console.WriteLine("3. Daily Sales Summary");
+            Console.WriteLine("4. Low Stock Alert");
+            Console.WriteLine("0. Back to the main menu");
+            Console.WriteLine("Choose an option");
+
+            userChoice = Console.ReadLine()?.Trim() ?? string.Empty;
+
+            switch (userChoice)
+            {
+                case "1":
+                    listBestSellingProducts();
+                    break;
+                case "2":
+                    listTopCustomersBySpend();
+                    break;
+                case "3":
+                    showDailySalesSummary();
+                    break;
+                case "4":
+                    ShowLowStockAlert();
+                    break;
+                case "0":
+                    break;
+
+                default:
+                    Console.WriteLine("Invalid choice. Please try again");
+                    break;
+            }
+
+        }
+    }
+
+
+    public static void listBestSellingProducts() 
+    {
+        if (Orders.Count == 0 || !Orders.SelectMany(o => o.Items).Any())
+        { Console.WriteLine("No sales data available to Report"); }
+
+        var bestSoldProducts = Orders
+            .SelectMany(o => o.Items)
+            .GroupBy(i => new { i.Product.Id, i.Product.Name })
+            .Select(g => new 
+            { ProductName = g.Key.Name, TotalQuantitySold = g.Sum(i => i.Quantity), TotalRevenue=g.Sum(i=>i.Subtotal) })
+            .OrderByDescending(x => x.TotalQuantitySold)
+            .Take(5).ToList();
+
+        Console.WriteLine("\n--------------------------------------------------");
+        Console.WriteLine($"{"Product Name",-20} | {"Qty Sold",-10} | {"Total Revenue",12}");
+        Console.WriteLine("--------------------------------------------------");
+
+        foreach (var item in bestSoldProducts)
+        {
+            string displayName = item.ProductName.Length > 18 ? item.ProductName.Substring(0, 15) + "..." : item.ProductName;
+            Console.WriteLine($"{displayName,-20} | {item.TotalQuantitySold,-10} | {item.TotalRevenue,12:C}");
+        }
+        Console.WriteLine("--------------------------------------------------");
+    }
+
+    public static void listTopCustomersBySpend()
+    {
+        if (Orders.Count == 0 || !Orders.SelectMany(o => o.Items).Any())
+        { Console.WriteLine("No sales data available to Report"); }
+
+        var TopCustomers= Orders
+            .GroupBy(o=>new { o.Customer.Id, o.Customer.Name})
+            .Select(g => new
+            { CustomerName = g.Key.Name, OrdersCount = g.Count(), Totalspent = g.Sum(i => i.FinalTotal) })
+            .OrderByDescending(x => x.Totalspent)
+            .Take(5).ToList();
+
+        Console.WriteLine("\n--------------------------------------------------");
+        Console.WriteLine($"{"Customer Name",-20} | {"Orders",-8} | {"Total Spent",14}");
+        Console.WriteLine("--------------------------------------------------");
+
+        foreach (var c in TopCustomers)
+        {
+            string displayName = c.CustomerName.Length > 18 ? c.CustomerName.Substring(0, 15) + "..." : c.CustomerName;
+            Console.WriteLine($"{displayName,-20} | {c.OrdersCount,-8} | {c.Totalspent,14:C}");
+        }
+        Console.WriteLine("--------------------------------------------------");
+    }
+
+    public static void showDailySalesSummary()
+    {
+        if (Orders.Count == 0 || !Orders.SelectMany(o => o.Items).Any())
+        { Console.WriteLine("No sales data available to Report"); }
+        DateTime aimedDate;
+        while (true)
+        {
+            Console.WriteLine("Enter date for daily sales summary (yyyy-MM-dd):");
+            string inputdate = Console.ReadLine()?.Trim() ?? string.Empty;
+            if (DateTime.TryParseExact( inputdate, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out aimedDate ))
+            {
+                break;
+            }
+            Console.WriteLine("Invalid date format or non-existent date. Please use YYYY-MM-DD (e.g. 2026-11-04).");
+        }
+
+        Console.WriteLine($"[DEBUG] Total Orders: {Orders.Count} | Aimed Date: {aimedDate.Date:yyyy-MM-dd}");
+       
+
+        var dayOrders = Orders.Where(o => o.OrderDate.Date == aimedDate.Date).ToList();
+
+        Console.WriteLine($"\n--- Sales Summary for {aimedDate:yyyy-MM-dd} ---");
+        if (dayOrders.Count == 0)
+        {
+            Console.WriteLine("No orders found for this date."); 
+        return;
+        }
+
+        int orderCount = dayOrders.Count;
+        decimal dayRevenue = dayOrders.Sum(o => o.FinalTotal); 
+
+    Console.WriteLine($"Total Orders : {orderCount}"); 
+    Console.WriteLine($"Total Revenue: {dayRevenue:C}"); 
+    Console.WriteLine("--------------------------------------------------");
+
+
+    }
+
+    public static void ShowLowStockAlert()
+    {
+        if (Orders.Count == 0 || !Orders.SelectMany(o => o.Items).Any())
+        { Console.WriteLine("No sales data available to Report"); }
+
+        int threshold =InputHelper.ReadInt("Enter stock threshold to alert low stock products:", 1);
+
+        var lowSrokProducts = Products
+            .Where(p => p.Quantity <= threshold)
+            .OrderBy(p => p.Quantity)   
+            .ToList();
+        lowSrokProducts.OrderByDescending(p => p.Quantity);
+
+        if (lowSrokProducts.Count == 0)
+        {
+            Console.WriteLine($"No products found with quantity at or below {threshold}.");
+        return;
+        }
+
+        Console.WriteLine($"\n--- Low Stock Alert (Threshold: <= {threshold}) ---");
+        Console.WriteLine("--------------------------------------------------");
+        Console.WriteLine($"{"ID (Short)",-10} | {"Name",-15} | {"Category",-12} | {"Quantity",8}");
+        Console.WriteLine("--------------------------------------------------");
+
+        foreach (var p in lowSrokProducts)
+        {
+            string shortId = p.Id.ToString().Substring(0, Math.Min(8, p.Id.ToString().Length));
+            string displayName = p.Name.Length > 12 ? p.Name.Substring(0, 9) + "..." : p.Name;
+
+            Console.WriteLine($"{shortId,-10} | {displayName,-15} | {p.Category,-12} | {p.Quantity,8}");
+        }
+        Console.WriteLine("--------------------------------------------------");
+
     }
 
 }
