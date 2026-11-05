@@ -12,10 +12,11 @@ class Program
 
     static void Main(string[] args)
     {
-        // sorry for the misdirecting, I got confused between level 7 & 10 
-        //Products = StoreFileManager.LoadProducts();
-        //Customers = StoreFileManager.LoadCustomers();
-        //Orders = StoreFileManager.LoadOrders();
+        var loadData = StoreFileManager.LoadData();
+        Products = loadData.Products;
+        Customers = loadData.Customers;
+        Orders = loadData.Orders;
+        Discounts = loadData.Discounts;
 
         MenuSwitchRun();
 
@@ -66,9 +67,7 @@ class Program
                     break;
 
                 case "0":
-                    //StoreFileManager.saveProducts(Products);
-                    //StoreFileManager.saveCustomers(Customers);
-                    //StoreFileManager.saveOrders(Orders);
+                    StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
                     Console.WriteLine("Thank you for using MyStore waiting for you once again!");
                     break;
                 default:
@@ -172,7 +171,7 @@ class Program
         Product newProduct = new Product(productName, productPrice, quantity, selectedCategory);
         Products.Add(newProduct);
 
-        // StoreFileManager.saveProducts(Products);
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
     static void ListProducts()
@@ -223,36 +222,25 @@ class Program
             return;
         }
 
-        Console.WriteLine("\n-------------------------------------------------------------------------");
-        Console.WriteLine($"{"ID (Short)",-10} | {"Name",-15} | {"Category",-12} | {"Price",10} | {"Quantity",8} | {"Total",10}");
-        Console.WriteLine("-------------------------------------------------------------------------");
+        Console.WriteLine("Enter product ID to update price:");
+        string inputId = Console.ReadLine()?.Trim() ?? string.Empty;
 
-        foreach (var p in Products)
+        var inputproduct = Products.FirstOrDefault(p => p.Id.ToString().StartsWith(inputId, StringComparison.OrdinalIgnoreCase));
+
+        if (inputproduct == null)
         {
-            decimal totalItemValue = p.Price * p.Quantity;
-            string shortId = p.Id.ToString().Substring(0, Math.Min(8, p.Id.ToString().Length));
-            string displayName = p.Name.Length > 12 ? p.Name.Substring(0, 9) + "..." : p.Name;
-
-            Console.WriteLine($"{shortId,-10} | {displayName,-15} | {p.Category,-12} | {p.Price,8:C} | {p.Quantity,8} | {totalItemValue,8:C}");
+            Console.WriteLine($"No product found with ID: {inputId}");
+            return;
         }
 
-        Console.WriteLine("-------------------------------------------------------------------------");
+        decimal newPrice = InputHelper.ReadDecimal($"Current Price of {inputproduct.Name} is {inputproduct.Price:C},\nEnter new price:", 0.01m);
 
-        Console.WriteLine("Inventory Breakdown by Category:");
-        var categoryBreakdown = Products
-            .GroupBy(p => p.Category)
-            .Select(g => new { Category = g.Key, TotalValue = g.Sum(p => p.Price * p.Quantity) });
+        inputproduct.Price = newPrice;
+        Console.WriteLine($"Price updated for {inputproduct.Name} to {inputproduct.Price:C}");
 
-        foreach (var item in categoryBreakdown)
-        {
-            Console.WriteLine($"- {item.Category,-12}: {item.TotalValue,10:C}");
-        }
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
 
-        decimal overallTotal = Products.Sum(p => p.Price * p.Quantity);
-        Console.WriteLine("-------------------------------------------------------------------------");
-        Console.WriteLine($"Total Inventory Value: {overallTotal:C}");
-        Console.WriteLine("-------------------------------------------------------------------------");
-        //StoreFileManager.saveProducts(Products);
+
     }
 
     // Update product quantity
@@ -277,7 +265,7 @@ class Program
 
         inputproduct.Quantity = newQuantity;
         Console.WriteLine($"Quantity updated for {inputproduct.Name} to {inputproduct.Quantity}");
-        //StoreFileManager.saveProducts(Products);
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
     // Method to delete a product
@@ -308,7 +296,7 @@ class Program
         {
             Console.WriteLine("Deletion cancelled.");
         }
-        //StoreFileManager.saveProducts(Products);
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
     // Method to search for products by name
@@ -431,6 +419,7 @@ class Program
                     CustomerFindByName();
                     break;
                 case "0":
+                    StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
                     break;
 
                 default:
@@ -466,7 +455,7 @@ class Program
 
         Customer newCustomer = new Customer(customerName, customerPhone);
         Customers.Add(newCustomer);
-        //StoreFileManager.saveCustomers(Customers);
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
     static void ListCustomers()
@@ -566,7 +555,6 @@ class Program
                     break;
                 case "0":
                     break;
-
                 default:
                     Console.WriteLine("Invalid choice. Please try again");
                     break;
@@ -729,8 +717,7 @@ class Program
             Console.WriteLine("Order cancelled. Stock remains the same.");
         }
 
-        // StoreFileManager.saveOrders(Orders);
-        // StoreFileManager.saveProducts(Products);
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
     public static void ListOrders()
@@ -852,6 +839,7 @@ class Program
         });
 
         Console.WriteLine($"Discount code '{code}' added successfully!");
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
 
     }
 
@@ -892,6 +880,7 @@ class Program
         discount.IsActive = !discount.IsActive;
         string stateStr = discount.IsActive ? "activated" : "deactivated";
         Console.WriteLine($"Discount code '{discount.Code}' has been {stateStr}.");
+        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
     //================= REPORTS SECTION =====================
@@ -933,10 +922,8 @@ class Program
                     Console.WriteLine("Invalid choice. Please try again");
                     break;
             }
-
         }
     }
-
 
     public static void listBestSellingProducts() 
     {

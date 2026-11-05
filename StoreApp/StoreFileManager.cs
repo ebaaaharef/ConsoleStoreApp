@@ -9,49 +9,74 @@ namespace StoreApp
 {
     internal class StoreFileManager
     {
-        private static readonly string ProductsFile = "products.json";
-        private static readonly string CustomersFile = "customers.json";
-        private static readonly string OrdersFile = "orders.json";
-
-        // ====save and load products=====
-        public static void saveProducts(List<Product> products)
-        { 
-            string jsonString = JsonSerializer.Serialize(products,new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(ProductsFile, jsonString);
-        }
-
-        public static List<Product> LoadProducts()
+        private static readonly string FilePath = "store-data.json";
+        public static void SaveData(List<Product> products, List<Customer> customers, List<Order> orders, List<Discount> discounts)
         {
-            if (!File.Exists(ProductsFile)) return new List<Product>();
-            string jsonString = File.ReadAllText(ProductsFile);
-            return JsonSerializer.Deserialize<List<Product>>(jsonString) ?? new List<Product>();
+            try
+            {
+                var storeData = new StoreData
+                {
+                    Products = products,
+                    Customers = customers,
+                    Orders = orders,
+                    Discounts = discounts
+                };
+                string jsonString = JsonSerializer.Serialize(storeData, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(FilePath, jsonString);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving data: {ex.Message}");
+            }
         }
-
-        // ====save and load customers=====
-        public static void saveCustomers(List<Customer> customers)
+        public static StoreData LoadData()
         {
-            string jsonString = JsonSerializer.Serialize(customers , new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(CustomersFile, jsonString);
+            if (!File.Exists(FilePath)) { return new StoreData(); }
+            try
+            {
+                string jsonString = File.ReadAllText(FilePath);
+                if (string.IsNullOrWhiteSpace(jsonString)) {return new StoreData();}
+                var storeData = JsonSerializer.Deserialize<StoreData>(jsonString);
+                if (storeData == null) return new StoreData();
+
+                foreach(var order in storeData.Orders)
+                {
+                    if (order.Customer != null)
+                    {
+                        var realCustomer = storeData.Customers.FirstOrDefault(c => c.Id == order.Customer.Id);
+                        if (realCustomer != null)
+                        { order.Customer = realCustomer; }
+                    }
+
+                    if (order.Items != null)
+                    {
+                        foreach (var item in order.Items) {
+                            if (item.Product != null)
+                            {
+                                var realProduct = storeData.Products.FirstOrDefault(p => p.Id == item.Product.Id);
+                                if( realProduct!= null) { item.Product = realProduct; }
+                            }
+          
+                        }
+                    }
+                }
+                return storeData;
+            }
+            catch (Exception ex)when (ex is JsonException|| ex is IOException)
+            {
+                try
+                {
+                    if (File.Exists(FilePath))
+                    {
+                        string backupPath = FilePath + ".bak";
+                        File.Copy(FilePath, backupPath, true);
+                        Console.WriteLine($"Corrupted file backed up to {backupPath}");
+                    }
+                }
+                catch { }
+                return new StoreData();
+            }
         }
 
-        public static List<Customer> LoadCustomers()
-        {
-            if (!File.Exists(CustomersFile)) return new List<Customer>();
-            string jsonString = File.ReadAllText(CustomersFile);
-            return JsonSerializer.Deserialize<List<Customer>>(jsonString) ?? new List<Customer >();
-        }
-
-        // ====save and load orders=====
-
-        public static void saveOrders(List<Order> orders) {
-            string jsonString = JsonSerializer.Serialize(orders, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(OrdersFile, jsonString);
-        }
-        public static List<Order> LoadOrders()
-        {
-            if (!File.Exists(OrdersFile)) return new List<Order>();
-            string jsonString = File.ReadAllText(OrdersFile);
-            return JsonSerializer.Deserialize<List<Order>>(jsonString) ?? new List<Order>();  
-        }
     }
 }
