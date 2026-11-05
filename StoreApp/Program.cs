@@ -19,8 +19,6 @@ class Program
         Discounts = loadData.Discounts;
 
         MenuSwitchRun();
-
-
     }
 
     static void MenuDisplay()
@@ -47,35 +45,44 @@ class Program
             MenuDisplay();
             Console.WriteLine("Choose an option :");
             userChoice = Console.ReadLine()?.Trim() ?? "empty";
-
-            switch (userChoice)
+            try
             {
-                case "1":
-                    ManageProducts();
-                    break;
-                case "2":
-                    ManageCustomer();
-                    break;
-                case "3":
-                    ManageOrders();
-                    break;
-                case "4":
-                    ManageDiscount();
-                    break;
-                case "5":
-                    ManageReports();
-                    break;
+                switch (userChoice)
+                {
+                    case "1":
+                        ManageProducts();
+                        break;
+                    case "2":
+                        ManageCustomer();
+                        break;
+                    case "3":
+                        ManageOrders();
+                        break;
+                    case "4":
+                        ManageDiscount();
+                        break;
+                    case "5":
+                        ManageReports();
+                        break;
 
-                case "0":
-                    StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
-                    Console.WriteLine("Thank you for using MyStore waiting for you once again!");
-                    break;
-                default:
-                    Console.WriteLine("Invalid choice. Please try again");
-                    break;
+                    case "0":
+                        StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
+                        Console.WriteLine("Thank you for using MyStore waiting for you once again!");
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Please try again");
+                        break;
 
+                }
             }
-
+            catch (BusinessException ex) { ConsoleWriter.Warning(ex.Message); }
+            catch (Exception ex) 
+            {
+                ConsoleWriter.Error("unexpected error occoured,please try again");
+               string logLine= $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {ex.Message}\n";
+                File.AppendAllText("errors.log", logLine);
+            }
+            finally { Console.ResetColor(); }
 
         }
     }
@@ -269,7 +276,6 @@ class Program
     }
 
     // Method to delete a product
-    //!!!ConsoleUtils  used
     public static void DeleteProduct()
     {
         if (Products.Count == 0)
@@ -290,7 +296,7 @@ class Program
         if (confirm)
         {
             Products.Remove(inputproduct);
-            Console.WriteLine("Product has been deleted successfully.");
+            ConsoleWriter.Success("Product has been deleted successfully.");
         }
         else
         {
@@ -448,13 +454,14 @@ class Program
 
         if (Customers.Any(Cp => Cp.PhoneNumber == customerPhone))
         {
-            Console.WriteLine("A customer with this phone number already exists.");
-            return;
+           throw new BusinessException("A customer with this phone number already exists.");
+            
         }
 
 
         Customer newCustomer = new Customer(customerName, customerPhone);
         Customers.Add(newCustomer);
+        ConsoleWriter.Success($"Customer:{newCustomer.Name} id added successfully with id:{newCustomer.Id}");
         StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
@@ -502,7 +509,7 @@ class Program
             return;
         }
 
-        Console.WriteLine($"\n--- Search Results ({matchedcustomers.Count} found) ---");
+        ConsoleWriter.Success($"\n--- Search Results ({matchedcustomers.Count} found) ---");
 
         Console.WriteLine("\n------------------------------------------------");
         Console.WriteLine($"{"ID (Short)",-12} | {"Name",-20} | {"Phone number",15}");
@@ -562,7 +569,6 @@ class Program
 
         }
     }
-    //!!!ConsoleUtils  used
     public static void CreateOrder()
     {
         if (Customers.Count == 0)
@@ -622,8 +628,8 @@ class Program
 
             if (requestedQuantity > product.Quantity)
             {
-                Console.WriteLine($"Insufficient stock for {product.Name}. Available quantity: {product.Quantity - orderedQuantity}");
-                continue;
+                throw new BusinessException($"Insufficient stock for {product.Name}. Available quantity: {product.Quantity - orderedQuantity}");
+                
             }
 
             if (existingItem != null)
@@ -671,7 +677,7 @@ class Program
 
             appliedDiscountCode = discountinputcode.Code;
             discountPercentage = discountinputcode.Percentage;
-            Console.WriteLine($"Discount applied successfully: {discountPercentage}% off.");
+            ConsoleWriter.Success($"Discount applied successfully: {discountPercentage}% off.");
             break;
         }
 
@@ -710,7 +716,7 @@ class Program
             };
 
             Orders.Add(newOrder);
-            Console.WriteLine($"\nOrder #{newOrder.Id} creation completed successfully!");
+            ConsoleWriter.Success($"\nOrder #{newOrder.Id} creation completed successfully!");
         }
         else
         {
@@ -825,8 +831,7 @@ class Program
 
         if (Discounts.Any(d => d.Code.Equals(code, StringComparison.OrdinalIgnoreCase)))
         {
-            Console.WriteLine("A discount code with this name already exists.");
-            return;
+            throw new BusinessException("A discount code with this name already exists.");
         }
 
         decimal percentage = InputHelper.ReadDecimal("Enter dicount percentage (1 to 100)", 1, 100);
@@ -838,7 +843,7 @@ class Program
             IsActive = true
         });
 
-        Console.WriteLine($"Discount code '{code}' added successfully!");
+        ConsoleWriter.Success($"Discount code '{code}' added successfully!");
         StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
 
     }
@@ -879,7 +884,7 @@ class Program
 
         discount.IsActive = !discount.IsActive;
         string stateStr = discount.IsActive ? "activated" : "deactivated";
-        Console.WriteLine($"Discount code '{discount.Code}' has been {stateStr}.");
+        ConsoleWriter.Success($"Discount code '{discount.Code}' has been {stateStr}.");
         StoreFileManager.SaveData(Products, Customers, Orders, Discounts);
     }
 
@@ -987,11 +992,9 @@ class Program
             {
                 break;
             }
-            Console.WriteLine("Invalid date format or non-existent date. Please use YYYY-MM-DD (e.g. 2026-11-04).");
+            throw new BusinessException("Invalid date format or non-existent date. Please use YYYY-MM-DD (e.g. 2026-11-04).");
         }
-
-        Console.WriteLine($"[DEBUG] Total Orders: {Orders.Count} | Aimed Date: {aimedDate.Date:yyyy-MM-dd}");
-       
+  
 
         var dayOrders = Orders.Where(o => o.OrderDate.Date == aimedDate.Date).ToList();
 
